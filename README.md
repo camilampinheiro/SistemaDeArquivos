@@ -1,81 +1,54 @@
 # Simulador de Sistema de Arquivos com Journaling
 
-## Resumo
-
-Este projeto apresenta o desenvolvimento de um simulador de sistema de arquivos em Java, com suporte ao modelo de **Journaling**. Através dele, é possível realizar operações fundamentais de gerenciamento de arquivos e diretórios, com persistência e registro das ações realizadas.
-
----
-
-## Introdução
-
-O gerenciamento eficiente de arquivos é essencial para o funcionamento dos sistemas operacionais. Compreender como os arquivos e diretórios são organizados e manipulados fornece uma base sólida para o entendimento das estruturas de um SO. Este simulador visa representar, de forma didática, o funcionamento interno de um sistema de arquivos simplificado.
-
----
-
-## Objetivo
-
-Desenvolver um simulador de sistema de arquivos em **Java**, capaz de:
-
-- Criar, remover e renomear arquivos e diretórios;
-- Copiar e mover arquivos e diretórios;
-- Exibir o conteúdo de arquivos e a estrutura completa;
-- Controlar permissões de leitura e escrita;
-- Utilizar **Journaling** para registrar operações;
-- **Persistir automaticamente** o estado do sistema ao encerrar;
-- Permitir comandos manuais de `savefs` e `loadfs`.
-
----
-
 ## Metodologia
 
-### Linguagem utilizada
+O simulador foi desenvolvido em linguagem de programação **Java**, utilizando uma arquitetura orientada a objetos. O programa simula o comportamento de um sistema de arquivos via **modo Shell (linha de comando)**, permitindo ao usuário executar operações como criação, remoção, leitura, renomeação e movimentação de arquivos e diretórios.
 
-- **Java 17+**
-- **Serialização** (`ObjectOutputStream`) para persistência
-- Interface de texto simulando **Shell** de comandos
-
-### Estrutura de execução
-
-- O sistema é executado em **modo Shell**
-- O usuário digita comandos no terminal
-- As ações são processadas e logadas via **journaling**
-- O estado é salvo em disco ao digitar `exit`
-
----
+Cada operação é registrada em um arquivo de log (journaling) para garantir **rastreamento e integridade dos dados**. Os dados persistem entre sessões por meio de serialização.
 
 ## Parte 1: Introdução ao Sistema de Arquivos com Journaling
 
-### O que é um Sistema de Arquivos?
+### O que é um sistema de arquivos?
 
-É a estrutura usada pelo sistema operacional para armazenar, organizar e acessar arquivos e diretórios no armazenamento persistente.
+Um **sistema de arquivos** é o componente do sistema operacional responsável por organizar e gerenciar dados armazenados em dispositivos de armazenamento, como HDs ou SSDs. Ele fornece uma estrutura hierárquica para salvar, acessar e modificar arquivos e diretórios.
 
 ### O que é Journaling?
 
-Journaling é uma técnica usada para garantir a **integridade dos dados** em caso de falhas (como queda de energia). As operações são primeiro **registradas em um log (journal)** antes de serem executadas, permitindo recuperação em caso de erro.
+**Journaling** é um mecanismo usado para garantir a consistência dos dados. Antes de uma operação ser realizada, ela é registrada em um log (journal). Se ocorrer uma falha, como queda de energia, o sistema pode recuperar a integridade dos dados com base nesse log.
 
-#### Tipos:
-- **Write-ahead Logging (WAL)**: as ações são gravadas no log antes de serem aplicadas.
-- **Log-structured FS**: o sistema inteiro é tratado como um log sequencial.
+#### Tipos de Journaling:
+- **Write-Ahead Logging (WAL):** Registra operações antes de aplicá-las.
+- **Metadata Journaling:** Apenas alterações nos metadados são registradas.
+- **Full Journaling:** Tanto dados quanto metadados são registrados.
 
----
+Neste projeto, utilizamos o modelo de journaling com log de texto estruturado, com **timestamp** e descrição da operação.
 
 ## Parte 2: Arquitetura do Simulador
 
-### Classes e Estruturas
+### Estrutura de Dados
 
-- `FileSystemSimulator`: shell principal do sistema
-- `Directory`: representa diretórios (possui subdiretórios e arquivos)
-- `FileItem`: representa arquivos (com nome, conteúdo e permissões)
-- `Journal`: registra as operações com timestamp
+O simulador utiliza as seguintes estruturas de dados:
 
-### Journaling
+- **Classe `Directory`:** Representa um diretório e contém listas de arquivos e subdiretórios.
+- **Classe `FileItem`:** Representa um arquivo com nome, conteúdo, e permissões (`r/w`).
+- **Classe `Journal`:** Registra todas as operações em um arquivo `journal_log.txt`, com marcação de horário.
+- **Classe `FileSystemSimulator`:** Responsável pela interface em modo Shell e execução das operações.
 
-- Cada ação relevante é registrada no arquivo `journal_log.txt`
-- Os logs podem ser visualizados com o comando `log`
+### Implementação do Journaling
 
----
+O log de operações (`journal_log.txt`) armazena cada comando executado com seu respectivo horário. Exemplo:
 
-## Parte 3: Implementação Java
+- [2025-06-01T14:20:45] [MKDIR] /projetos
+- [2025-06-01T14:21:10] [CREATE] /projetos/relatorio.txt "Conteúdo inicial"
+
+## Parte 3: Implementação em Java
+
+### Classes principais
+
+- **`FileSystemSimulator`**: Contém o loop principal do Shell, processamento dos comandos e serialização dos dados (`savefs`, `loadfs`).
+- **`Directory`**: Permite adicionar, remover, renomear e navegar por diretórios.
+- **`FileItem`**: Manipula arquivos e seu conteúdo, além de permissões.
+- **`Journal`**: Gerencia o journaling com gravação persistente das operações e visualização (`log`).
 
 ### Principais Comandos:
 
@@ -97,18 +70,19 @@ Journaling é uma técnica usada para garantir a **integridade dos dados** em ca
 | `loadfs` | Carrega o estado salvo anteriormente |
 | `exit` | Salva automaticamente e encerra o sistema |
 
----
-
-## Parte 4: Instalação e Execução
+## Parte 4: Instalação e Funcionamento
 
 ### Requisitos
 
-- Java JDK 17+
-- IDE ou terminal com suporte a compilação
+- Java 11 ou superior
+- Terminal ou IDE (como VS Code, IntelliJ ou Eclipse)
 
-### Executar o sistema
+### Como executar
 
-```bash
-javac -d bin src/models/*.java src/FileSystemSimulator.java
-cd bin
-java FileSystemSimulator
+1. **Clone o repositório no GitHub**:
+   ```bash
+   git clone https://github.com/camilampinheiro/SistemaDeArquivos
+   cd SistemaDeArquivos
+
+   javac -d bin src/models/*.java src/FileSystemSimulator.java
+   java FileSystemSimulator
